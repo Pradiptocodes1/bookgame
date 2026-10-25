@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Book café bingo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#dfeae4; --ink:#1b2a38; --muted:#4d6170; --panel:#f5faf7; --gold:#f2b705; --shadow:rgba(27,42,56,.28);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--bg:#101b25;--ink:#e9f0f4;--muted:#9db0bd;--panel:#182735;--shadow:rgba(0,0,0,.5)}
+}
+:root[data-theme="dark"]{--bg:#101b25;--ink:#e9f0f4;--muted:#9db0bd;--panel:#182735;--shadow:rgba(0,0,0,.5)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"DM Sans",system-ui,sans-serif;min-height:100vh}
+main{max-width:620px;margin:0 auto;padding:28px 14px 40px}
+h1{font-family:"Young Serif",Georgia,serif;font-weight:400;font-size:clamp(2.2rem,9vw,3.4rem);line-height:1;margin:0 0 10px;letter-spacing:-.01em}
+h2{font-family:"Young Serif",Georgia,serif;font-weight:400;font-size:1.3rem;margin:0 0 10px}
+.sub{margin:0 0 18px;color:var(--muted);font-size:1.02rem;line-height:1.45;max-width:48ch}
+.row{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center}
+.timer{display:flex;align-items:center;gap:12px;background:var(--panel);border-radius:12px;padding:10px 14px;margin-bottom:14px;box-shadow:0 6px 16px -10px var(--shadow)}
+.clock{font-family:"Young Serif",Georgia,serif;font-size:2rem;font-variant-numeric:tabular-nums;min-width:4.4ch}
+.pace{flex:1;color:var(--muted);font-size:.9rem;line-height:1.3}
+.shelf{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 12px 16px;background:var(--panel);border-radius:14px;box-shadow:0 10px 24px -12px var(--shadow);border-bottom:10px solid #8a5a35}
+.sq{--c:#e4572e;--f:#fff;position:relative;aspect-ratio:3/4;border:0;padding:8px 6px 8px 14px;border-radius:3px 7px 7px 3px;background:var(--c);color:var(--f);font:inherit;text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;box-shadow:inset 7px 0 0 rgba(0,0,0,.22),inset -2px 0 0 rgba(255,255,255,.25),2px 3px 0 var(--shadow);transition:transform .15s,filter .25s}
+.sq:hover{transform:translateY(-3px)}
+.sq:disabled{cursor:default;transform:none}
+.sq:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.em{font-size:clamp(1.3rem,6.5vw,2.1rem);line-height:1;margin-top:12px}
+.t{font-weight:700;font-size:clamp(.62rem,2.7vw,.9rem);line-height:1.15;overflow-wrap:anywhere}
+.pts{position:absolute;top:5px;right:5px;min-width:1.5em;height:1.5em;border-radius:99px;background:rgba(255,255,255,.9);color:#1b2a38;font-size:.7rem;font-weight:700;display:grid;place-items:center;padding:0 .35em}
+.who{position:absolute;bottom:5px;right:5px;width:1.7em;height:1.7em;border-radius:50%;font-size:.75rem;font-weight:700;display:none;place-items:center;border:2px solid #1b2a38;z-index:2}
+.sq[aria-pressed="true"] .who{display:grid}
+.who.p0{background:#1b2a38;color:#fff}.who.p1{background:#fff;color:#1b2a38}
+.sq::after{content:"read";position:absolute;left:46%;top:50%;transform:translate(-50%,-50%) rotate(-14deg) scale(1.6);font-family:"Young Serif",Georgia,serif;font-size:clamp(.85rem,4.2vw,1.4rem);color:#b3261e;border:3px double #b3261e;border-radius:6px;padding:1px 8px;background:rgba(255,255,255,.88);opacity:0;pointer-events:none}
+.sq[aria-pressed="true"]{filter:saturate(.5) brightness(.93)}
+.sq[aria-pressed="true"]::after{opacity:1;transform:translate(-50%,-50%) rotate(-14deg) scale(1);transition:transform .22s cubic-bezier(.3,1.6,.5,1),opacity .1s}
+.sq.win{box-shadow:inset 7px 0 0 rgba(0,0,0,.22),0 0 0 3px var(--gold),2px 3px 0 var(--shadow)}
+.status{margin:16px 2px 0;font-family:"Young Serif",Georgia,serif;font-size:1.25rem;line-height:1.25}
+.card{background:var(--panel);border-radius:12px;padding:14px;margin-top:18px;box-shadow:0 6px 16px -10px var(--shadow)}
+.mode{display:inline-flex;border-radius:99px;box-shadow:inset 0 0 0 2px var(--ink);overflow:hidden;margin-bottom:12px}
+.mode button{font:inherit;font-weight:700;border:0;background:transparent;color:var(--ink);padding:6px 14px;cursor:pointer}
+.mode button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.players{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.players.solo{grid-template-columns:1fr}
+.pl{border-radius:10px;padding:10px 12px;cursor:pointer;box-shadow:inset 0 0 0 2px var(--shadow);background:transparent}
+.pl.cur{box-shadow:inset 0 0 0 3px var(--ink);background:rgba(242,183,5,.18)}
+.pl.lead .big::after{content:" 👑"}
+.pl input{font:inherit;font-weight:700;width:100%;background:transparent;border:0;border-bottom:1px dashed var(--muted);color:var(--ink);padding:2px 0;border-radius:0}
+.pl input:focus-visible{outline:2px solid var(--gold)}
+.big{font-family:"Young Serif",Georgia,serif;font-size:2.3rem;line-height:1.1;margin-top:6px}
+.det{font-size:.85rem;color:var(--muted);margin-top:2px}
+.turn{font-size:.85rem;color:var(--muted);margin:10px 0 0}
+.dare{margin:0 0 10px;line-height:1.4}
+.dare b{font-family:"Young Serif",Georgia,serif;font-weight:400;font-size:1.1rem}
+button.act{font:inherit;font-weight:700;background:var(--ink);color:var(--bg);border:0;border-radius:99px;padding:9px 16px;cursor:pointer}
+button.act.alt{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 2px var(--ink)}
+button.act:disabled{opacity:.45;cursor:default}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.rules{margin:22px 2px 0;padding:0;list-style:none;color:var(--muted);font-size:.95rem;line-height:1.5}
+.rules li{padding-left:1.3em;position:relative;margin-bottom:5px}
+.rules li::before{content:"\1F4D6";position:absolute;left:-.1em;font-size:.8em}
+.pop{position:fixed;inset:0;display:none;align-items:center;justify-content:center;pointer-events:none;z-index:5}
+.pop.on{display:flex}
+.pop span{font-family:"Young Serif",Georgia,serif;font-size:clamp(2rem,10vw,4rem);background:var(--gold);color:#1b2a38;padding:12px 26px;border-radius:12px;box-shadow:0 14px 30px var(--shadow);animation:pop 1.6s ease forwards}
+@keyframes pop{0%{transform:rotate(-4deg) scale(.3);opacity:0}15%{transform:rotate(-4deg) scale(1.08);opacity:1}25%{transform:rotate(-4deg) scale(1)}80%{opacity:1}100%{opacity:0;transform:rotate(-4deg) scale(1)}}
+@media (prefers-reduced-motion:reduce){.sq,.sq::after{transition:none}.pop span{animation:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Book café bingo</h1>
+  <p class="sub">Browse the shelves, glance at covers and blurbs, and claim a square whenever a book fits. Sixteen squares, about five minutes a book.</p>
+
+  <div class="timer">
+    <div class="clock" id="clock">90:00</div>
+    <div class="pace" id="pace">A 90-minute round. Start the clock when you walk to the shelves.</div>
+    <button class="act" id="go">Start</button>
+  </div>
+
+  <div class="shelf" id="board" role="group" aria-label="Bingo board"></div>
+  <div class="status" id="status" aria-live="polite">Pick up your first book.</div>
+
+  <section class="card" aria-label="Scores">
+    <h2>Scores</h2>
+    <div class="mode" role="group" aria-label="Players">
+      <button type="button" id="m1" aria-pressed="false">Solo</button>
+      <button type="button" id="m2" aria-pressed="true">Two players</button>
+    </div>
+    <div class="players" id="players"></div>
+    <p class="turn" id="turn">Tap a name to switch whose turn it is. Each square scores the points on its corner. A line is worth +5 and a full house +10.</p>
+  </section>
+
+  <section class="card" aria-label="Bonus dare">
+    <h2>Bonus dare</h2>
+    <p class="dare" id="dare">Fancy a side quest? Draw a dare for bonus points.</p>
+    <div class="row">
+      <button class="act alt" id="draw">Draw a dare</button>
+      <button class="act" id="dareDone" disabled>Done, +2</button>
+    </div>
+  </section>
+
+  <div class="row" style="margin-top:18px">
+    <button class="act alt" id="shuffle">Shuffle board</button>
+    <button class="act alt" id="reset">New round</button>
+  </div>
+
+  <ul class="rules">
+    <li>One book claims one square. Tap a claimed square again to undo it.</li>
+    <li>Glancing at the cover and blurb is enough. No need to read the whole book.</li>
+    <li>Hard mode: read the first page out loud before you claim a square.</li>
+    <li>When the clock hits zero, the highest score wins.</li>
+  </ul>
+</main>
+<div class="pop" id="pop"><span id="popText">Bingo!</span></div>
+<script>
+var T=[
+ ["A cover in your favourite colour","🎨","#e4572e","#fff",1],
+ ["Mystery, crime or thriller","🔍","#1f6f78","#fff",1],
+ ["Anything romantic","💌","#e88fb0","#1b2a38",1],
+ ["Someone goes on a journey","🧳","#2e86ab","#fff",1],
+ ["An animal on the cover or in the blurb","🐾","#8aa63a","#1b2a38",1],
+ ["Made you smile or laugh","😄","#f7c948","#1b2a38",1],
+ ["Food, chai or cooking","🍜","#b5483a","#fff",1],
+ ["Magic, myth or ghosts","🔮","#3b4a9e","#fff",2],
+ ["Future, space or technology","🚀","#33415c","#fff",2],
+ ["Set long, long ago","🏰","#7b5ea7","#fff",2],
+ ["A real person’s story","📸","#5b8e3e","#fff",2],
+ ["Teaches you something new","💡","#d96c1e","#fff",2],
+ ["A number in the title","🔢","#c9a227","#1b2a38",2],
+ ["Set in a place you know","📍","#2a9d8f","#fff",3],
+ ["A secret or twist hinted in the blurb","🗝️","#6b2d5c","#fff",3],
+ ["An award sticker or “bestseller” label","🏆","#a8323e","#fff",3]
+];
+var DARES=["Read a line aloud in a movie-trailer voice","Find the book with the longest title","Guess the ending from the cover, then peek at the last page","Find a book you would gift the other player","Pick a book purely by its smell","Find the thinnest book on the shelf","Find a cover that matches someone’s outfit","Read a last line and guess the genre","Find the thickest book and guess its page count","Open a random page and read one sentence in a dramatic whisper","Find a book whose title you could use as a band name","Find a cover with your favourite colour and a pun in the title","Pitch a book to the other player in 10 seconds","Find a book that looks like it has a secret inside","Pick the book you would take to a desert island, from the cover alone","Read a blurb in your best accent","Find a title that sounds like a bad day","Guess the author’s first name from the cover","Find a book older than both of you","Make up a one-line sequel for any book on the shelf"];
+var LINES=[];
+for(var i=0;i<4;i++){LINES.push([0,1,2,3].map(function(j){return i*4+j}));LINES.push([0,1,2,3].map(function(j){return j*4+i}))}
+LINES.push([0,5,10,15],[3,6,9,12]);
+var DUR=90*60,left=DUR,timer=null,over=false;
+var order=T.map(function(_,i){return i}),claims={},lineOwner={},fhOwner=null,cur=0,np=2,dares=[0,0],dareOpen=false;
+var $=function(id){return document.getElementById(id)};
+var board=$("board"),names=["Player 1","Player 2"];
+
+// scoreboard (built once so name inputs keep focus)
+var pbox=$("players");
+for(var p=0;p<2;p++){
+  var d=document.createElement("div");d.className="pl";d.id="pl"+p;
+  d.innerHTML='<input aria-label="Player '+(p+1)+' name" value="'+names[p]+'" maxlength="14"><div class="big" id="sc'+p+'">0</div><div class="det" id="dt'+p+'"></div>';
+  (function(p){
+    d.addEventListener("click",function(){cur=p;update(false)});
+    d.querySelector("input").addEventListener("input",function(e){names[p]=e.target.value||"Player "+(p+1);label()});
+  })(p);
+  pbox.appendChild(d);
+}
+
+function build(){
+  board.innerHTML="";
+  order.forEach(function(id){
+    var t=T[id],b=document.createElement("button");
+    b.className="sq";b.type="button";b.dataset.id=id;
+    b.style.setProperty("--c",t[2]);b.style.setProperty("--f",t[3]);
+    b.innerHTML='<span class="pts" aria-label="'+t[4]+' points">'+t[4]+'</span><span class="em" aria-hidden="true">'+t[1]+'</span><span class="t">'+t[0]+'</span><span class="who"></span>';
+    b.onclick=function(){
+      if(over)return;
+      if(claims[id]!==undefined)delete claims[id];else claims[id]=cur;
+      update(true);
+    };
+    board.appendChild(b);
+  });
+  update(false);
+}
+function initial(p){return(names[p].trim()[0]||String(p+1)).toUpperCase()}
+function label(){for(var p=0;p<2;p++){var w=board.querySelectorAll(".who.p"+p);for(var i=0;i<w.length;i++)w[i].textContent=initial(p)}}
+
+function update(click){
+  var cells=board.children,n=0,bonus=null;
+  for(var i=0;i<cells.length;i++){
+    var id=cells[i].dataset.id,c=claims[id],on=c!==undefined,w=cells[i].querySelector(".who");
+    cells[i].setAttribute("aria-pressed",on?"true":"false");cells[i].classList.remove("win");cells[i].disabled=over;
+    w.className="who"+(on?" p"+c:"");w.textContent=on?initial(c):"";
+    if(on)n++;
+  }
+  var wins=0;
+  LINES.forEach(function(L,i){
+    var full=L.every(function(p){return claims[order[p]]!==undefined});
+    if(full){wins++;L.forEach(function(p){cells[p].classList.add("win")});if(lineOwner[i]===undefined){lineOwner[i]=claims[order[L[0]]]===undefined?cur:cur;bonus="Bingo! +5"}}
+    else delete lineOwner[i];
+  });
+  if(n===16){if(fhOwner===null){fhOwner=cur;bonus="Full house! +10"}}else fhOwner=null;
+  var s=[0,0],lc=[0,0];
+  Object.keys(claims).forEach(function(id){s[claims[id]]+=T[id][4]});
+  Object.keys(lineOwner).forEach(function(i){s[lineOwner[i]]+=5;lc[lineOwner[i]]++});
+  if(fhOwner!==null)s[fhOwner]+=10;
+  for(var p=0;p<2;p++)s[p]+=dares[p]*2;
+  var sq=[0,0];Object.keys(claims).forEach(function(id){sq[claims[id]]++});
+  var lead=np===2&&s[0]!==s[1]?(s[0]>s[1]?0:1):-1;
+  for(var p=0;p<2;p++){
+    $("sc"+p).textContent=s[p];
+    $("dt"+p).textContent=sq[p]+" squares, "+lc[p]+(lc[p]===1?" line":" lines")+(dares[p]?", "+dares[p]+(dares[p]===1?" dare":" dares"):"");
+    var el=$("pl"+p);el.classList.toggle("cur",cur===p&&!over);el.classList.toggle("lead",lead===p);
+    el.style.display=(p===1&&np===1)?"none":"";
+  }
+  pbox.classList.toggle("solo",np===1);
+  $("m1").setAttribute("aria-pressed",np===1?"true":"false");$("m2").setAttribute("aria-pressed",np===2?"true":"false");
+  var msg;
+  if(over){
+    msg=np===1?"Time’s up! You scored "+s[0]+" points.":(s[0]===s[1]?"Time’s up! It’s a tie at "+s[0]+" points.":"Time’s up! "+names[s[0]>s[1]?0:1]+" wins "+Math.max(s[0],s[1])+" to "+Math.min(s[0],s[1])+".");
+  }else if(n===16)msg="Full house! You read the whole shelf.";
+  else if(wins)msg=wins+(wins>1?" lines":" line")+" done. Go for the full house.";
+  else if(n===0)msg="Pick up your first book.";
+  else{var best=0;LINES.forEach(function(L){var k=L.filter(function(p){return claims[order[p]]!==undefined}).length;if(k>best)best=k});msg=best===3?"One square from a line.":(16-n)+" squares to go.";}
+  $("status").textContent=msg;
+  if(click&&bonus)pop(bonus);
+}
+function pop(t){var p=$("pop");$("popText").textContent=t;p.classList.remove("on");void p.offsetWidth;p.classList.add("on");setTimeout(function(){p.classList.remove("on")},1700)}
+
+// timer
+function fmt(){var m=Math.floor(left/60),s=left%60;$("clock").textContent=(m<10?"0":"")+m+":"+(s<10?"0":"")+s}
+function tick(){
+  left--;fmt();
+  if(left<=0){left=0;fmt();clearInterval(timer);timer=null;over=true;$("go").textContent="Start";$("go").disabled=true;$("pace").textContent="Round over.";update(false);pop("Time’s up!");}
+}
+$("go").onclick=function(){
+  if(timer){clearInterval(timer);timer=null;$("go").textContent="Resume";$("pace").textContent="Paused. Sip your coffee.";}
+  else{timer=setInterval(tick,1000);$("go").textContent="Pause";$("pace").textContent="Clock is running. Aim for about five minutes a book.";}
+};
+
+// dares
+$("draw").onclick=function(){
+  $("dare").innerHTML="<b>"+DARES[Math.floor(Math.random()*DARES.length)]+"</b>";
+  dareOpen=true;$("dareDone").disabled=false;
+};
+$("dareDone").onclick=function(){
+  if(!dareOpen||over)return;
+  dares[cur]++;dareOpen=false;$("dareDone").disabled=true;
+  $("dare").textContent="Nice. +2 for "+names[cur]+". Draw another when you’re ready.";
+  update(false);pop("+2 bonus!");
+};
+
+// modes and resets
+function setMode(n){np=n;cur=0;fresh()}
+$("m1").onclick=function(){setMode(1)};$("m2").onclick=function(){setMode(2)};
+function fresh(){
+  claims={};lineOwner={};fhOwner=null;dares=[0,0];dareOpen=false;over=false;
+  if(timer){clearInterval(timer);timer=null}
+  left=DUR;fmt();$("go").textContent="Start";$("go").disabled=false;$("pace").textContent="A 90-minute round. Start the clock when you walk to the shelves.";
+  $("dare").textContent="Fancy a side quest? Draw a dare for bonus points.";$("dareDone").disabled=true;
+  build();
+}
+$("reset").onclick=fresh;
+$("shuffle").onclick=function(){
+  for(var i=order.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=order[i];order[i]=order[j];order[j]=t}
+  fresh();
+};
+fmt();build();
+</script>
+</body>
+</html>
